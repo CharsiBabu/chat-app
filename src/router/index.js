@@ -1,29 +1,45 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-
+import store from '../store/'
 Vue.use(VueRouter)
 
-  const routes = [
+const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'Login',
+    meta: {
+      isLoginRequired: false,
+      title: 'Login'
+    },
+    component: () => import('@/components/Login/Login.vue')
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: '/chat',
+    name: 'Chat',
+    meta: {
+      isLoginRequired: true,
+      title: 'Chat'
+    },
+    component: () => import('@/components/Chat/Chat.vue')
   }
 ]
 
 const router = new VueRouter({
   mode: 'history',
-  base: process.env.BASE_URL,
+  base: process.env.APP_URL,
   routes
+})
+
+router.beforeEach(async (to, from, next) => {
+  if (to.matched.some(record => record.meta.isLoginRequired)) {
+    if (store.getters.getLoggedIn) {
+      next()
+      return
+    }
+    next({ name: 'Login' })
+  } else {
+    next()
+  }
 })
 
 export default router
